@@ -20,7 +20,10 @@
      :verdicts   [{:claim str :rating kw :cites [url…] :confidence 0..1 :note str}]
      :effect     :assessment   ; tashikame only ever assesses, never actuates
      :confidence 0..1}"
-  (:require [clojure.string :as str]))
+  (:require #?(:clj  [clojure.edn :as edn]
+               :cljs [cljs.reader :as edn])
+            [clojure.string :as str]
+            [langchain.model :as model]))
 
 (defprotocol Advisor
   (-assess [advisor store request] "store + request → proposal map"))
@@ -63,3 +66,93 @@
    :summary    (:summary proposal)
    :verdicts   (:verdicts proposal)
    :confidence (:confidence proposal)})
+
+;; ───────────────────────── real-LLM advisor (Murakumo fleet) ─────────────────────────
+;; Sealed just like the mock: it returns a PROPOSAL only — the FactGovernor
+;; still censors every verdict. The model is an INJECTED langchain.model/
+;; ChatModel (OpenAI-compatible Ollama / LiteLLM, or Anthropic). Inference is
+;; DEFAULT-PREFERRED on the Murakumo fleet (Rider v3.3 §2(i)); the deploy
+;; entrypoint builds the chat-model against the local Ollama (gemma-4-E4B) and
+;; injects it here. Per ADR-2606072802, a read-only web gather is autonomously
+;; allowed (no operator gate) — the caller may pre-fetch source text into the
+;; request before assessing.
+
+(def allowed-infer-hosts
+  "Murakumo-fleet inference hosts only (Rider §2(i) / shirabe G2 parity). A
+  non-Murakumo host is refused — no opaque/lock-in commercial GPU by default."
+  #{"127.0.0.1:11434" "localhost:11434"
+    "127.0.0.1:4000"  "localhost:4000"
+    "192.168.1.70:4000"})
+
+(defn- host-port [url]
+  (when (string? url) (second (re-find #"(?i)^[a-z]+://([^/]+)" url))))
+
+(defn assert-murakumo!
+  "Throw if `ollama-url` is not a Murakumo-fleet inference host."
+  [ollama-url]
+  (let [hp (host-port ollama-url)]
+    (when-not (contains? allowed-infer-hosts hp)
+      (throw (ex-info (str "inference host " hp " is not Murakumo-fleet (Rider §2(i))")
+                      {:host hp})))))
+
+(def tashikame-system-prompt
+  "You are tashikame (確かめ), a fact-checker. Assess the user's claim against
+the provided source URLs (and your own knowledge). Be conservative: if you
+cannot verify, say :unverifiable. Respond with ONLY a single-line EDN map,
+no prose, no code fences:
+  {:rating <supported|refuted|misleading|unverifiable> :cites [\"https://...\"] :confidence <0.0-1.0> :note \"one short sentence\"}
+Cite ONLY real, reachable URLs. An uncited conclusive rating is worthless.")
+
+(defn- build-prompt [{:keys [text source-urls]}]
+  (str "Claim: " text "\n\n"
+       "Source URLs provided: " (pr-str (vec (or source-urls []))) "\n\n"
+       "Return ONLY the EDN map now."))
+
+(def ^:private valid-ratings #{:supported :refuted :misleading :unverifiable})
+
+(defn- coerce-rating [r]
+  (let [k (cond (keyword? r) r
+                (string? r)  (keyword (str/lower-case r))
+                (symbol? r)  (keyword (str/lower-case (name r)))
+                :else        nil)]
+    (if (valid-ratings k) k :unverifiable)))
+
+(defn parse-verdict-edn
+  "Defensively parse the LLM's EDN verdict map. Any parse failure → a safe
+  :unverifiable verdict (the FactGovernor then gates it; the system never
+  breaks on a malformed model output)."
+  [content]
+  (let [s (-> (str content)
+              (str/replace #"(?s)```[a-zA-Z]*" "")
+              (str/replace "```" ""))]
+    (try
+      (let [m (some-> (re-find #"(?s)\{.*\}" s) edn/read-string)
+            conf (:confidence m)]
+        {:rating     (coerce-rating (:rating m))
+         :cites      (vec (filter string? (:cites m)))
+         :confidence (if (number? conf) (max 0.0 (min 1.0 (double conf))) 0.3)
+         :note       (str (or (:note m) ""))})
+      (catch #?(:clj Throwable :cljs :default) _
+        {:rating :unverifiable :cites [] :confidence 0.2
+         :note "LLM output unparseable"}))))
+
+(defn llm-advisor
+  "Advisor backed by a langchain.model/ChatModel (OpenAI-compatible Ollama /
+   LiteLLM, or Anthropic). Sealed: returns a PROPOSAL only; the FactGovernor
+   still censors. gen-opts → model/-generate opts (e.g. {:max-tokens 512})."
+  ([chat-model] (llm-advisor chat-model {}))
+  ([chat-model gen-opts]
+   (reify Advisor
+     (-assess [_ _store request]
+       (let [content (:content
+                      (model/-generate chat-model
+                        [{:role :system :content tashikame-system-prompt}
+                         {:role :user   :content (build-prompt request)}]
+                        gen-opts)
+                      {})
+             v      (parse-verdict-edn content)]
+         {:summary    (str "factllm verdict: " (name (:rating v)))
+          :rationale  "LLM assessment (Murakumo); governor-censored downstream"
+          :verdicts   [(assoc v :claim (:text request))]
+          :effect     :assessment
+          :confidence (:confidence v)})))))
