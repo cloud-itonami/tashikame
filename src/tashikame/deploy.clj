@@ -18,6 +18,8 @@
             [langchain.model :as model]
             [langgraph.graph :as g]
             [tashikame.advisor :as advisor]
+            [tashikame.aozora :as aozora]
+            [tashikame.cacao :as cacao]
             [tashikame.publisher :as publisher]
             [tashikame.store :as store]
             [tashikame.operation :as op])
@@ -61,8 +63,33 @@
      :json-write json/write-str
      :json-read  #(json/read-str % :key-fn keyword)})))
 
+(defn identify-live
+  "Live identify test (ADR-2607022300 identify facet): generate the actor's
+  self-sovereign did:key, then createSession(self-CACAO)→JWT→createRecord a
+  profile record to pds.aozora.app. Proves the app-aozora-pds auth flow.
+  clojure -M:dev -m tashikame.deploy identify-live"
+  []
+  (let [id  (cacao/load-or-create-identity! ".tashikame/identity.edn")
+        pub (aozora/aozora-publisher {:pds        "https://pds.aozora.app"
+                                      :identity   id
+                                      :json-write json/write-str
+                                      :json-read  json/read-str})
+        profile {:$type       "com.etzhayyim.apps.tashikame.profile"
+                 :collection  "com.etzhayyim.apps.tashikame.profile"
+                 :rkey        "self"
+                 :displayName "確かめ — Fact-Check Verdict Publisher"
+                 :description "tashikame (確かめ) live identify via createSession→createRecord (self-sovereign did:key)."
+                 :lexicons    ["com.etzhayyim.apps.tashikame.factCheck"]}]
+    (println "actor did:key :" (:did id))
+    (println "createSession→createRecord profile @ pds.aozora.app, repo=" (:did id))
+    (try
+      (let [r (publisher/publish! pub profile)] (println "PUBLISHED:" r))
+      (catch Exception e
+        (println "FAILED:" (ex-message e) (pr-str (ex-data e)))))))
+
 (defn -main
   [& args]
+  (when (= (first args) "identify-live") (identify-live) (System/exit 0))
   (let [[claim & urls] (if (seq args) args
                            ["The Great Wall of China is visible from the Moon with the naked eye."])
         chat    (ollama-chat-model)
