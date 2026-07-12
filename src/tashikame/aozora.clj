@@ -18,7 +18,7 @@
            [java.time Instant]
            [java.util UUID]))
 
-(def default-pds "https://pds.etzhayyim.com")
+(def default-pds "https://pds.aozora.app")
 
 (defn jvm-http-fn
   "host-caps :http-fn backed by the JDK HTTP client (no dependency)."
