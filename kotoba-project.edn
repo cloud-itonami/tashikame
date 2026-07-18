@@ -1,0 +1,7 @@
+{:kotoba.project/root kotoba.etzhayyim.tashikame.publish-gate
+ :kotoba.project/modules
+ {kotoba.etzhayyim.tashikame.publish-gate "kotoba/publish_gate.kotoba"
+  kotoba.etzhayyim.tashikame.phase-defaults "kotoba/phase_defaults.kotoba"}
+ :kotoba.project/package-lock "kotoba.lock.edn"
+ :kotoba.project/trust "kotoba.trust.edn"
+ :kotoba.project/dependency-manifests {}}

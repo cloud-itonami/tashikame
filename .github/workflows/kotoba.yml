@@ -1,0 +1,34 @@
+name: Kotoba pilot
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  native-closed-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify with released native Kotoba CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_dir="$RUNNER_TEMP/kotoba-v0.6.14"
+          cli_dir="$RUNNER_TEMP/kotoba-cli"
+          mkdir -p "$release_dir" "$cli_dir"
+          curl -L --fail --silent --show-error \
+            -o "$release_dir/kotoba-linux-amd64.tar.gz" \
+            https://github.com/kotoba-lang/kotoba/releases/download/v0.6.14/kotoba-linux-amd64.tar.gz
+          curl -L --fail --silent --show-error \
+            -o "$release_dir/kotoba-linux-amd64.tar.gz.sha256" \
+            https://github.com/kotoba-lang/kotoba/releases/download/v0.6.14/kotoba-linux-amd64.tar.gz.sha256
+          (cd "$release_dir" && sha256sum -c kotoba-linux-amd64.tar.gz.sha256)
+          tar -xzf "$release_dir/kotoba-linux-amd64.tar.gz" -C "$cli_dir"
+          "$cli_dir/kotoba" check --project kotoba-project.edn --target web --json
+          "$cli_dir/kotoba" compile --project kotoba-project.edn --target web \
+            --output "$RUNNER_TEMP/tashikame-phase.mjs" --json
+          node scripts/test-kotoba-project.mjs "$RUNNER_TEMP/tashikame-phase.mjs"

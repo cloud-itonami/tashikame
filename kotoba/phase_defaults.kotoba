@@ -1,0 +1,4 @@
+(ns kotoba.etzhayyim.tashikame.phase-defaults
+  (:export [default-phase]))
+
+(defn default-phase [] 1)
