@@ -17,6 +17,7 @@ assert.deepEqual(Object.keys(generated.kotobaArtifact.moduleSourceDigests), [
 const api = generated.instantiateKotoba({});
 assert.equal(api["publish-allowed"](0n), 0n);
 assert.equal(api["publish-allowed"](1n), 1n);
-assert.equal(api["publish-allowed"](2n), 0n);
+assert.equal(api["publish-allowed"](2n), 1n);
+assert.equal(api["publish-allowed"](-1n), 1n);
 
 console.log("tashikame Kotoba closed-project pilot passed");

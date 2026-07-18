@@ -3,6 +3,6 @@
   (:export [publish-allowed]))
 
 (defn publish-allowed [phase]
-  (if (= phase (defaults/default-phase))
-    1
-    0))
+  (if (= phase 0)
+    0
+    (defaults/default-phase)))
