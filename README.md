@@ -70,6 +70,12 @@ only thing that withholds publication.
 There is deliberately NO "every publish needs approval" phase — that would be
 per-post prior restraint, which ADR-2606281500 lifts.
 
+The bounded numeric publish gate is also implemented as a closed, two-module
+Kotoba project in `kotoba/` and verified with the released native CLI. The
+existing `phase.cljc` remains the CLJ/CLJS host API because its labels, keyword
+maps, and booleans are not yet representable by Kotoba's safety-first value
+model. This is an intentional boundary, not an extension-only rename.
+
 ## Injected seams (each a swap, core unchanged)
 
 - **Store** — `MemStore` ‖ `DatomicStore` (langchain.db `:db-api`) ‖ kotoba-server pod.
@@ -83,6 +89,7 @@ per-post prior restraint, which ADR-2606281500 lifts.
 clojure -M:lint          # clj-kondo, errors fail
 clojure -M:dev:test      # cognitect test-runner (canonical)
 clojure -M:dev:run       # offline demo (two sample claims, mock publisher)
+# Native Kotoba: kotoba check --project kotoba-project.edn --target web
 ```
 
 ## Related files

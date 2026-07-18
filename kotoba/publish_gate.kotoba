@@ -1,0 +1,8 @@
+(ns kotoba.etzhayyim.tashikame.publish-gate
+  (:require [kotoba.etzhayyim.tashikame.phase-defaults :as defaults])
+  (:export [publish-allowed]))
+
+(defn publish-allowed [phase]
+  (if (= phase (defaults/default-phase))
+    1
+    0))
