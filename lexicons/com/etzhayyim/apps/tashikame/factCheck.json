@@ -1,0 +1,54 @@
+{
+  "lexicon" : 1,
+  "id" : "com.etzhayyim.apps.tashikame.factCheck",
+  "defs" : {
+    "main" : {
+      "type" : "record",
+      "description" : "Citation-grounded fact-check verdict published by tashikame. Publication is speech, never actuation.",
+      "key" : "tid",
+      "record" : {
+        "type" : "object",
+        "required" : [ "claimId", "actor", "rating", "claim", "cites", "confidence", "text" ],
+        "properties" : {
+          "claimId" : {
+            "type" : "string",
+            "maxLength" : 512
+          },
+          "actor" : {
+            "type" : "string",
+            "maxLength" : 512
+          },
+          "rating" : {
+            "type" : "string",
+            "enum" : [ "supported", "refuted", "misleading", "unverifiable" ]
+          },
+          "claim" : {
+            "type" : "string",
+            "maxLength" : 10000
+          },
+          "cites" : {
+            "type" : "array",
+            "maxLength" : 100,
+            "items" : {
+              "type" : "string",
+              "format" : "uri"
+            }
+          },
+          "confidence" : {
+            "type" : "number",
+            "minimum" : 0,
+            "maximum" : 1
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 10000
+          },
+          "text" : {
+            "type" : "string",
+            "maxLength" : 3000
+          }
+        }
+      }
+    }
+  }
+}
