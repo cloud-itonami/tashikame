@@ -1,8 +1,17 @@
 (ns kotoba.etzhayyim.tashikame.publish-gate
-  (:require [kotoba.etzhayyim.tashikame.phase-defaults :as defaults])
   (:export [publish-allowed]))
 
+;; The answer is a publish FLAG (0 = shadow-record, 1 = publish), NOT a phase
+;; number. It is derived from `phase` alone and deliberately does not read
+;; `phase-defaults/default-phase`: that is a phase NUMBER which merely happens
+;; to equal 1 today, and returning it here made the flag flip whenever the
+;; default moved. See `tashikame.phase/publish-allowed?`: phase 0 (observe)
+;; shadow-records, and every other phase — the defined phase 1, and any
+;; out-of-range phase, which the cljc routes through `phases[default-phase]`
+;; = phase 1 = publish — publishes. That fallback is resolved here at author
+;; time against the cljc's `default-phase` 1; if the cljc constant ever moves,
+;; `tashikame.kotoba-parity-test` fails on the out-of-range probes.
 (defn publish-allowed [phase]
   (if (= phase 0)
     0
-    (defaults/default-phase)))
+    1))

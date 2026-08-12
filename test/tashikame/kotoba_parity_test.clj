@@ -23,12 +23,22 @@
   below — and that projection is part of what is being asserted. Do not delete
   it and compare raw values; the two sides do not have the same value model.
 
-  A known fragility this pins (see also the ADR/README):
-  `publish-allowed` returns `(defaults/default-phase)` — i.e. the default PHASE
-  NUMBER — in the slot where the answer is a publish FLAG. Today that is 1 and
-  phase 1 is publish-allowed, so the two sides agree. Change `default-phase` to
-  0 and the `.kotoba` starts answering \"do not publish\" for phase 1 while the
-  cljc still answers \"publish\". These tests are what makes that visible.
+  A fragility this used to pin, now FIXED (see also the ADR/README):
+  `publish-allowed` used to return `(defaults/default-phase)` — i.e. the default
+  PHASE NUMBER — in the slot where the answer is a publish FLAG. That agreed
+  with the cljc only because the default is 1 and phase 1 is publish-allowed;
+  moving `default-phase` to 0 made the `.kotoba` answer \"do not publish\" for
+  every non-zero phase while the cljc still answered \"publish\" (9 of the 10
+  probes below). `publish-allowed` now derives the flag from `phase` alone —
+  0 for phase 0, 1 otherwise — and no longer requires `phase-defaults` at all.
+  `publish-allowed-is-independent-of-default-phase` below is what keeps the two
+  quantities apart: it recompiles the project with a substituted
+  `phase_defaults` source and asserts the answers do not move. Note the one
+  place the two are still genuinely related — the cljc routes an out-of-range
+  phase through `phases[default-phase]`, and the `.kotoba` resolves that
+  fallback at author time against the current default of 1; if the CLJC
+  constant ever moves, `publish-gate-kotoba-agrees-with-phase-cljc` fails on
+  the out-of-range probes, which is the correct place to notice it.
 
   Namespaces
   ==========
@@ -91,6 +101,50 @@
                  (kir/execute ir 'publish-allowed [p]))
               (str "phase " p ": .kotoba publish-allowed and .cljc "
                    "publish-allowed? disagree")))))))
+
+(def ^:private defaults-ns 'kotoba.etzhayyim.tashikame.phase-defaults)
+
+(defn- defaults-source
+  "A `phase_defaults` module whose `default-phase` is `d`, shaped exactly like
+  the one on disk so the substitution differs in precisely the one number under
+  test. Built as text rather than by editing the file, because
+  `compile-project` takes a closed namespace-symbol -> source-text map: the
+  substitution is total and leaves the working tree alone."
+  [d]
+  (str "(ns kotoba.etzhayyim.tashikame.phase-defaults\n"
+       "  (:export [default-phase]))\n\n"
+       "(defn default-phase [] " d ")\n"))
+
+(defn- publish-answers
+  "`publish-allowed` over `probe-phases`, compiled through the SAME project map
+  the parity test uses, with only `phase_defaults` substituted. Going through
+  the project map is the point: if `publish-allowed` ever reads
+  `default-phase` again, these answers move."
+  [d]
+  (let [ir (:kir (compiler/compile-project
+                  (assoc sources defaults-ns (defaults-source d))
+                  (:kotoba.project/root project)
+                  target))]
+    (mapv #(kir/execute ir 'publish-allowed [%]) probe-phases)))
+
+(deftest publish-allowed-is-independent-of-default-phase
+  (testing "`publish-allowed` answers a publish FLAG derived from the phase, so
+            moving the default PHASE NUMBER must not move a single answer"
+    (let [expected (mapv (comp host-flag->i64 phase/publish-allowed?)
+                         probe-phases)]
+      (is (= expected (publish-answers 1))
+          "baseline: substituting the default it already has must reproduce the
+           cljc — otherwise the substitution machinery itself is wrong")
+      (doseq [d [0 2 -1 9223372036854775807 -9223372036854775808]]
+        (is (= d (kir/execute
+                  (:kir (compiler/compile-source (defaults-source d) target))
+                  'default-phase []))
+            (str "the substituted phase_defaults did not compile to " d
+                 " — the independence assertion below would be vacuous"))
+        (is (= expected (publish-answers d))
+            (str "default-phase " d " changed publish-allowed's answers: the "
+                 "publish FLAG has been re-entangled with the default PHASE "
+                 "NUMBER"))))))
 
 (deftest phase-defaults-kotoba-agrees-with-phase-cljc
   (testing "default-phase is the same number on both sides"
