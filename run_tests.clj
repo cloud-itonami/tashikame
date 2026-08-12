@@ -4,6 +4,7 @@
   (cognitect test-runner). This runner: `clojure -M -m tashikame.run-tests`."
   (:require [clojure.test :refer [run-tests]]
             [tashikame.governor-contract-test]
+            [tashikame.kotoba-parity-test]
             [tashikame.store-contract-test]
             [tashikame.operation-test])
   (:gen-class))
@@ -11,6 +12,7 @@
 (defn -main [& _args]
   (let [res (run-tests
              'tashikame.governor-contract-test
+             'tashikame.kotoba-parity-test
              'tashikame.store-contract-test
              'tashikame.operation-test)]
     (when (pos? (+ (:fail res 0) (:error res 0)))
