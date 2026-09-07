@@ -43,7 +43,7 @@
   Namespaces
   ==========
   The interpreter namespace tracks the compiler pin: newer pins (this one)
-  moved KIR execution out to `io.github.kotoba-lang/kotoba-kir`, so it is
+  moved KIR execution out to `io.github.kotoba-lang/osaho`, so it is
   `kotoba.kir`; older pins carried it in-tree as `kotoba.compiler.ir`.
 
   `publish_gate.kotoba` `(:require ...)`s `phase_defaults`, and
