@@ -24,8 +24,7 @@
             [tashikame.store :as store]
             [tashikame.operation :as op])
   (:import [java.net URI]
-           [java.net.http HttpClient HttpRequest HttpRequest$BodyPublishers
-            HttpResponse$BodyHandlers])
+           (java.time Duration))
   (:gen-class))
 
 (def ^:private default-ollama-url
@@ -36,17 +35,10 @@
       "hf.co/unsloth/gemma-4-E4B-it-qat-GGUF:UD-Q4_K_XL"))
 
 (defn jvm-http-fn
-  "langchain.model :http-fn backed by the JDK HTTP client (no dependency)."
+  "Delegated to kotoba.net.jvm-host (the workspace's single java.net.http site)."
   [{:keys [url method headers body]}]
-  (let [b (HttpRequest/newBuilder (URI/create url))]
-    (doseq [[k v] headers] (.header b k v))
-    (let [req  (-> b (.method (str/upper-case (name (or method :post)))
-                             (if body
-                               (HttpRequest$BodyPublishers/ofString body)
-                               (HttpRequest$BodyPublishers/noBody)))
-                   (.build))
-          resp (.send (HttpClient/newHttpClient) req (HttpResponse$BodyHandlers/ofString))]
-      {:status (.statusCode resp) :body (.body resp)})))
+  ((jvm-host/http-transport {:timeout-seconds 120})
+   {:url url :method (or method :post) :headers headers :body body}))
 
 (defn ollama-chat-model
   "Build a langchain.model/openai-model against a Murakumo-fleet Ollama.
