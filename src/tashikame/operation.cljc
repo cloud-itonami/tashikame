@@ -16,7 +16,7 @@
   inner loop; NO interrupt-before — publication is autonomous by default
   (ADR-2606281500). The FactGovernor's HARD violations are the only thing that
   withholds publication: a held verdict is recorded as a hold, never published."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [langgraph.graph :as g]
             [langgraph.checkpoint :as cp]
             [tashikame.advisor :as advisor]
