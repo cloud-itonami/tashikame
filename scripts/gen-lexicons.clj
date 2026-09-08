@@ -3,7 +3,7 @@
   (:require [babashka.fs :as fs]
             [cheshire.core :as json]
             [clojure.edn :as edn]
-            [clojure.string :as str]))
+            [kotoba.lang.text :as str]))
 
 (def source "contracts/lexicons/com.etzhayyim.apps.tashikame.factCheck.edn")
 (def target "lexicons/com/etzhayyim/apps/tashikame/factCheck.json")

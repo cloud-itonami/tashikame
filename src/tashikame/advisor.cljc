@@ -22,7 +22,7 @@
      :confidence 0..1}"
   (:require #?(:clj  [clojure.edn :as edn]
                :cljs [cljs.reader :as edn])
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [langchain.model :as model]))
 
 (defprotocol Advisor
@@ -126,8 +126,8 @@ Cite ONLY real, reachable URLs. An uncited conclusive rating is worthless.")
 
 (defn- coerce-rating [r]
   (let [k (cond (keyword? r) r
-                (string? r)  (keyword (str/lower-case r))
-                (symbol? r)  (keyword (str/lower-case (name r)))
+                (string? r)  (keyword (str/lower r))
+                (symbol? r)  (keyword (str/lower (name r)))
                 :else        nil)]
     (if (valid-ratings k) k :unverifiable)))
 

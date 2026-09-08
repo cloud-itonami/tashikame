@@ -21,7 +21,7 @@
                          claim-checking)
   SOFT (publish with tag):
     :low-confidence      overall confidence < floor"
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def confidence-floor 0.4)
 
