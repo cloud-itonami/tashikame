@@ -7,7 +7,9 @@
         ;; this repo silently rides whatever a sibling happens to name.
         io.github.kotoba-lang/text {:git/sha "73bdb13ae7a3d004b44bca08be03a3191157a38f"}
        org.clojure/clojure {:mvn/version "1.12.0"}
-        org.clojure/data.json {:mvn/version "2.5.1"} ; aozora publish + LLM json
+        ;; json.data-json is a data.json-shaped shim over json.core; pinned as
+        ;; an explicit floor for the same reason as text above.
+        io.github.kotoba-lang/json {:git/sha "4e33e06b4d66b365d27a51393a16a0acd660f9be"} ; aozora publish + LLM json
         io.github.com-junkawasaki/langgraph-clj
         {:local/root "../../kotoba-lang/langgraph"}}
  :aliases

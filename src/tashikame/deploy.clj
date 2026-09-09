@@ -13,7 +13,7 @@
   Usage: clojure -M:dev -m tashikame.deploy \"<claim>\" [source-url...]
   Env:   TASHIKAME_OLLAMA_URL (default http://127.0.0.1:11434)
          TASHIKAME_OLLAMA_MODEL (default gemma-4-E4B qat)"
-  (:require [clojure.data.json :as json]
+  (:require [json.data-json :as json]
             [kotoba.lang.text :as str]
             [langchain.model :as model]
             [langgraph.graph :as g]

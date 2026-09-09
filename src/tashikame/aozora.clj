@@ -29,13 +29,13 @@
     :identity    {:private-key :did …} from cacao/load-or-create-identity!
     :leash       a member CACAO b64 (the revocable off-switch); nil → record
                  attributed to the actor's own did:key (depth-1 self-mint)
-    :json-write  :json-read  injected JSON fns (e.g. clojure.data.json)
+    :json-write  :json-read  injected JSON fns (e.g. json.data-json)
     :http-fn     optional override (default jvm-http-fn)"
   [{:keys [pds identity json-write json-read http-fn]
     :or   {pds default-pds http-fn jvm-http-fn}}]
   (assert (:did identity) ":identity with :did is required (cacao/load-or-create-identity!)")
-  (assert json-write ":json-write fn is required (e.g. clojure.data.json/write-str)")
-  (assert json-read  ":json-read fn is required (e.g. clojure.data.json/read-str)")
+  (assert json-write ":json-write fn is required (e.g. json.data-json/write-str)")
+  (assert json-read  ":json-read fn is required (e.g. json.data-json/read-str)")
   (reify publisher/Publisher
     (publish! [_ record]
       ;; app-aozora-pds auth (self-sovereign CACAO, ADR-2606251700 + DEPLOY-RUNBOOK
