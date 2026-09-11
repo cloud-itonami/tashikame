@@ -10,7 +10,7 @@
   owner's — this entrypoint proves the real-LLM → governor → (mock) publish
   path against the live Murakumo model.
 
-  Usage: clojure -M:dev -m tashikame.deploy \"<claim>\" [source-url...]
+  Usage: kbb -M:dev -m tashikame.deploy \"<claim>\" [source-url...]
   Env:   TASHIKAME_OLLAMA_URL (default http://127.0.0.1:11434)
          TASHIKAME_OLLAMA_MODEL (default gemma-4-E4B qat)"
   (:require [json.data-json :as json]
@@ -59,7 +59,7 @@
   "Live identify test (ADR-2607022300 identify facet): generate the actor's
   self-sovereign did:key, then createSession(self-CACAO)→JWT→createRecord a
   profile record to pds.aozora.app. Proves the app-aozora-pds auth flow.
-  clojure -M:dev -m tashikame.deploy identify-live"
+  kbb -M:dev -m tashikame.deploy identify-live"
   []
   (let [id  (cacao/load-or-create-identity! ".tashikame/identity.edn")
         pub (aozora/aozora-publisher {:pds        "https://pds.aozora.app"

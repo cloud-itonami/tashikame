@@ -29,4 +29,4 @@ approval. Low-confidence verdicts still publish, tagged `:low-confidence`
   Publisher over com.atproto.repo.createRecord.
 - The actor's own Ed25519 identity lives in `.tashikame/identity.edn`
   (gitignored) — NEVER commit a private key.
-- `clojure -M:lint` (clj-kondo, errors fail) / `clojure -M:dev:test`.
+- `kbb -M:lint` (clj-kondo, errors fail) / `kbb -M:dev:test`.
