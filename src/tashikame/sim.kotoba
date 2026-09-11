@@ -1,7 +1,7 @@
 (ns tashikame.sim
   "Offline demo: drive two sample claims (one cited, one uncited) through the
   tashikame actor on a MemStore + mock advisor + mock publisher (no network).
-  `clojure -M:dev:run`."
+  `kbb -M:dev:run`."
   (:require [langgraph.graph :as g]
             [tashikame.operation :as op]
             [tashikame.store :as store]

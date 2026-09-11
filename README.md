@@ -86,9 +86,9 @@ model. This is an intentional boundary, not an extension-only rename.
 ## Run
 
 ```bash
-clojure -M:lint          # clj-kondo, errors fail
-clojure -M:dev:test      # cognitect test-runner (canonical)
-clojure -M:dev:run       # offline demo (two sample claims, mock publisher)
+kbb -M:lint          # clj-kondo, errors fail
+kbb -M:dev:test      # cognitect test-runner (canonical)
+kbb -M:dev:run       # offline demo (two sample claims, mock publisher)
 # Native Kotoba: kotoba check --project kotoba-project.edn --target web
 ```
 
