@@ -1,7 +1,7 @@
 # com-etzhayyim-tashikame
 
 tashikame (確かめ) — fact-check verdict publisher. See `README.md` for the core
-contract and full-repo `../../../CLAUDE.md` "Actors" section for the pattern
+contract and full-repo `../../../AGENTS.md` "Actors" section for the pattern
 this follows (containment + independent governor + append-only ledger).
 Superproject decision record:
 `../../../90-docs/adr/2607022200-com-etzhayyim-tashikame-factcheck-aozora-actor-r0.md`.
