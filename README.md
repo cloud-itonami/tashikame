@@ -96,4 +96,4 @@ kbb -M:dev:run       # offline demo (two sample claims, mock publisher)
 
 - `docs/adr/0001-architecture.md` — design 正本.
 - `../../../90-docs/adr/2607022200-com-etzhayyim-tashikame-factcheck-aozora-actor-r0.md` — superproject ADR.
-- `CLAUDE.md` — repo invariants / conventions.
+- `AGENTS.md` — repo invariants / conventions.
